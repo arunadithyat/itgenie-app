@@ -3,8 +3,8 @@ import requests
 from frappe import _
 
 @frappe.whitelist(allow_guest=True)
-def get_fleetx_live_analytics():
-    token = "e42a1892-c21b-4fe4-a674-d7984d567c0b"  # your Fleetx token
+def get_fleetx_lanalytics():
+    token = "be43d6e8-3a5a-4ad1-b12f-d95175e32a8a"  # your Fleetx token
     url = "https://api.fleetx.io/api/v1/analytics/live"
     headers = {
         "Authorization": f"bearer {token}"
@@ -31,8 +31,8 @@ def get_fleetx_live_analytics():
         }
 
 @frappe.whitelist(allow_guest=True)
-def get_vehicle_details(vehicle_number):
-    token = "e42a1892-c21b-4fe4-a674-d7984d567c0b"
+def get_vedetails(vehicle_number):
+    token = "be43d6e8-3a5a-4ad1-b12f-d95175e32a8a"
     url = "https://api.fleetx.io/api/v1/analytics/live"
     headers = {
         "Authorization": f"bearer {token}"
@@ -74,7 +74,7 @@ import uuid
 from frappe.utils import now_datetime, add_to_date
 
 @frappe.whitelist()
-def generate_tracking_link(vehicle):
+def generte_tracking_link(vehicle):
     tracking_id = str(uuid.uuid4())
     expiry = add_to_date(now_datetime(), hours=1)
 
@@ -94,7 +94,7 @@ def generate_tracking_link(vehicle):
 # in itgenie/api/fleetx/validate_tracking.py
 
 @frappe.whitelist(allow_guest=True)
-def validate_tracking(uuid):
+def valiate_tracking(uuid):
     try:
         doc = frappe.get_doc("Vehicle Tracking Link", {"uuid": uuid})
     except frappe.DoesNotExistError:

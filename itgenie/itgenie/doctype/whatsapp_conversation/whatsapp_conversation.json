@@ -1,0 +1,108 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:mobile_number",
+ "creation": "2026-05-29 16:18:54.177801",
+ "custom": 1,
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "mobile_number",
+  "customer_name",
+  "last_message",
+  "last_message_time",
+  "column_break_rony",
+  "opportunity",
+  "incoming_count",
+  "outgoing_count",
+  "brand",
+  "section_break_zdmb",
+  "messages"
+ ],
+ "fields": [
+  {
+   "fieldname": "mobile_number",
+   "fieldtype": "Data",
+   "label": "Mobile Number",
+   "unique": 1
+  },
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "last_message",
+   "fieldtype": "Small Text",
+   "label": "Last Message"
+  },
+  {
+   "fieldname": "last_message_time",
+   "fieldtype": "Datetime",
+   "label": "Last Message Time"
+  },
+  {
+   "fieldname": "column_break_rony",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "opportunity",
+   "fieldtype": "Link",
+   "label": "Opportunity",
+   "options": "Opportunity"
+  },
+  {
+   "fieldname": "incoming_count",
+   "fieldtype": "Int",
+   "label": "Incoming count"
+  },
+  {
+   "fieldname": "outgoing_count",
+   "fieldtype": "Int",
+   "label": "Outgoing Count"
+  },
+  {
+   "fieldname": "brand",
+   "fieldtype": "Select",
+   "label": "Brand",
+   "options": "\nRocotile\nBioman\nBioman STP\nTimbe\nD'sign Doors"
+  },
+  {
+   "fieldname": "section_break_zdmb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "messages",
+   "fieldtype": "Table",
+   "label": "Messages",
+   "options": "WhatsApp Messages"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-09-22 13:04:43.262748",
+ "modified_by": "rajesh.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "WhatsApp Conversation",
+ "naming_rule": "By fieldname",
+ "owner": "rajkumar.itdigital@homegeniegroup.com",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

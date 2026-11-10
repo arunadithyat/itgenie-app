@@ -1,0 +1,18 @@
+{
+ "creation": "2025-07-15 10:34:13.721983",
+ "doc_type": "Employee Grievance",
+ "docstatus": 0,
+ "doctype": "Property Setter",
+ "doctype_or_field": "DocField",
+ "field_name": "grievance_against",
+ "idx": 0,
+ "is_system_generated": 0,
+ "modified": "2025-07-15 10:34:29.968882",
+ "modified_by": "rajkumar.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "Employee Grievance-grievance_against-hidden",
+ "owner": "rajkumar.itdigital@homegeniegroup.com",
+ "property": "hidden",
+ "property_type": "Check",
+ "value": "1"
+}

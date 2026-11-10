@@ -268,3 +268,22 @@ fixtures = [
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+
+
+doc_events = {
+    "User": {
+        "before_validate": "itgenie.password_policy.validate_user_password",
+    },
+}
+
+override_whitelisted_methods = {
+    "frappe.core.doctype.user.user.update_password":
+        "itgenie.password_policy.update_password",
+}
+
+
+from itgenie.fcm.notification_hooks import (
+    configure_notification_hooks as _configure_fcm_hooks,
+)
+
+_configure_fcm_hooks(globals())

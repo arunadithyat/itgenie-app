@@ -1,0 +1,51 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-03-21 16:36:02.682219",
+ "custom": 1,
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "column_break_viww",
+  "item_code",
+  "polish_finish",
+  "polish_color"
+ ],
+ "fields": [
+  {
+   "fieldname": "column_break_viww",
+   "fieldtype": "Column Break",
+   "options": "\n80% Deadmatt\n100% Deadmatt\nGlossy"
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "label": "Item Code",
+   "options": "Item"
+  },
+  {
+   "fieldname": "polish_finish",
+   "fieldtype": "Select",
+   "label": "Polish Finish"
+  },
+  {
+   "fieldname": "polish_color",
+   "fieldtype": "Data",
+   "label": "Polish Color"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-03-21 17:08:43.122139",
+ "modified_by": "arun.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "Polish Request Item",
+ "owner": "arun.itdigital@homegeniegroup.com",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

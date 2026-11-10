@@ -1,0 +1,17 @@
+{
+ "creation": "2025-08-22 17:51:31.361199",
+ "doc_type": "Leave Application",
+ "docstatus": 0,
+ "doctype": "Property Setter",
+ "doctype_or_field": "DocType",
+ "idx": 0,
+ "is_system_generated": 0,
+ "modified": "2025-08-22 17:51:47.184305",
+ "modified_by": "rajkumar.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "Leave Application-main-field_order",
+ "owner": "rajkumar.itdigital@homegeniegroup.com",
+ "property": "field_order",
+ "property_type": "Data",
+ "value": "[\"workflow_state\", \"naming_series\", \"employee\", \"employee_name\", \"column_break_4\", \"leave_type\", \"company\", \"department\", \"tasks_assigned_to\", \"section_break_5\", \"from_date\", \"to_date\", \"half_day\", \"half_day_date\", \"total_leave_days\", \"column_break1\", \"description\", \"leave_balance\", \"section_break_7\", \"leave_approver\", \"leave_approver_name\", \"follow_via_email\", \"column_break_18\", \"posting_date\", \"status\", \"sb_other_details\", \"salary_slip\", \"color\", \"column_break_17\", \"letter_head\", \"amended_from\"]"
+}

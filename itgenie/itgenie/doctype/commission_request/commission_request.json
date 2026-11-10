@@ -1,0 +1,142 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:naming_series",
+ "creation": "2026-03-17 23:32:11.922700",
+ "custom": 1,
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "date",
+  "partner_type",
+  "sales_partner",
+  "quotation",
+  "commission_amount",
+  "payment_received",
+  "column_break_ltxh",
+  "company",
+  "project",
+  "sales_person",
+  "sales_order",
+  "order_value",
+  "pan"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Series"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "partner_type",
+   "fieldtype": "Select",
+   "label": "Partner Type",
+   "options": "\nNew\nExisting"
+  },
+  {
+   "fieldname": "sales_partner",
+   "fieldtype": "Link",
+   "label": "Sales Partner",
+   "link_filters": "[[\"Supplier\",\"supplier_group\",\"=\",\"Commision\"]]",
+   "mandatory_depends_on": "eval: doc.partner_type =='Existing'",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "quotation",
+   "fieldtype": "Link",
+   "label": "Quotation",
+   "options": "Quotation"
+  },
+  {
+   "fieldname": "commission_amount",
+   "fieldtype": "Currency",
+   "label": "Commission Amount"
+  },
+  {
+   "fieldname": "payment_received",
+   "fieldtype": "Currency",
+   "label": "Payment Received"
+  },
+  {
+   "fieldname": "column_break_ltxh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project"
+  },
+  {
+   "fieldname": "sales_person",
+   "fieldtype": "Link",
+   "label": "Sales Person",
+   "link_filters": "[[\"Sales Person\",\"enabled\",\"=\",1]]",
+   "options": "Sales Person"
+  },
+  {
+   "fieldname": "sales_order",
+   "fieldtype": "Link",
+   "label": "Sales Order",
+   "options": "Sales Order"
+  },
+  {
+   "fieldname": "order_value",
+   "fieldtype": "Currency",
+   "label": "Order Value"
+  },
+  {
+   "fieldname": "pan",
+   "fieldtype": "Attach",
+   "label": "PAN",
+   "mandatory_depends_on": "eval: doc.partner_type =='New'"
+  }
+ ],
+ "grid_page_length": 50,
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Payment Entry",
+   "link_fieldname": "custom_commission_request"
+  }
+ ],
+ "modified": "2026-09-22 12:12:10.264066",
+ "modified_by": "rajesh.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "Commission Request",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "arun.itdigital@homegeniegroup.com",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

@@ -1,0 +1,231 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:naming_series",
+ "creation": "2025-12-06 18:11:11.305643",
+ "custom": 1,
+ "default_print_format": "Rework",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "quotation",
+  "customer_name",
+  "column_break_zfwr",
+  "date",
+  "company",
+  "rework_status",
+  "section_break_wybh",
+  "project",
+  "rework_stage",
+  "description",
+  "rework_paid_by_customer",
+  "column_break_mkdg",
+  "reason_for_rework",
+  "other_reason",
+  "material_cost",
+  "labour_cost",
+  "transport_cost",
+  "total_cost",
+  "section_break_lzkd",
+  "rework_items",
+  "section_break_ifjd",
+  "sales_person",
+  "operations_manager",
+  "column_break_xyni",
+  "production_incharge",
+  "general_manager"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "read_only": 1
+  },
+  {
+   "fieldname": "quotation",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Quotation",
+   "link_filters": "[[\"Quotation\",\"company\",\"in\",[\"Doortisan Creations Private Limited\",\"Timbe Windows Private Limited\"]]]",
+   "options": "Quotation"
+  },
+  {
+   "fieldname": "customer_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer Name",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "column_break_zfwr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "default": "Doortisan Creations Private Limited",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "link_filters": "[[\"Company\",\"company_name\",\"in\",[\"Doortisan Creations Private Limited\",\"Timbe Windows Private Limited\"]]]",
+   "options": "Company"
+  },
+  {
+   "depends_on": "eval:doc.workflow_state == \"Approved\" || doc.workflow_state == \"Cancelled\"",
+   "fieldname": "rework_status",
+   "fieldtype": "Select",
+   "label": "Rework Status",
+   "options": "Open\nCompleted\nCancelled"
+  },
+  {
+   "fieldname": "section_break_wybh",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Project",
+   "link_filters": "[[\"Project\",\"company\",\"in\",[\"Doortisan Creations Private Limited\",\"Timbe Windows Private Limited\"]]]",
+   "options": "Project"
+  },
+  {
+   "fieldname": "rework_stage",
+   "fieldtype": "Select",
+   "label": "Rework Stage",
+   "options": "\nIn Progress\nPost Delivery"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "rework_paid_by_customer",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Rework Paid by Customer",
+   "options": "\nYes\nNo",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_mkdg",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reason_for_rework",
+   "fieldtype": "Select",
+   "label": "Reason For Rework",
+   "options": "\nMeasurement\nSales Side\nProduction Side\nInstallation Side\nCustomer Side\nOthers"
+  },
+  {
+   "depends_on": "eval: doc.reason_for_rework=='Others'",
+   "fieldname": "other_reason",
+   "fieldtype": "Data",
+   "label": "Other Reason"
+  },
+  {
+   "fieldname": "material_cost",
+   "fieldtype": "Currency",
+   "label": "Material Cost"
+  },
+  {
+   "fieldname": "labour_cost",
+   "fieldtype": "Currency",
+   "label": "Labour Cost"
+  },
+  {
+   "fieldname": "transport_cost",
+   "fieldtype": "Currency",
+   "label": "Transport Cost"
+  },
+  {
+   "fieldname": "total_cost",
+   "fieldtype": "Currency",
+   "label": "Total Cost"
+  },
+  {
+   "fieldname": "section_break_lzkd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "columns": 10,
+   "fieldname": "rework_items",
+   "fieldtype": "Table",
+   "label": "Rework Items",
+   "options": "Order Form Item"
+  },
+  {
+   "fieldname": "section_break_ifjd",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "sales_person",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Sales Person",
+   "options": "User"
+  },
+  {
+   "fieldname": "operations_manager",
+   "fieldtype": "Link",
+   "label": "Operations Manager",
+   "options": "User"
+  },
+  {
+   "fieldname": "column_break_xyni",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "production_incharge",
+   "fieldtype": "Link",
+   "label": "Production Incharge",
+   "options": "User"
+  },
+  {
+   "fieldname": "general_manager",
+   "fieldtype": "Link",
+   "label": "General Manager",
+   "options": "User"
+  }
+ ],
+ "grid_page_length": 50,
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "BOM",
+   "link_fieldname": "custom_flag"
+  }
+ ],
+ "modified": "2026-10-15 13:03:04.112320",
+ "modified_by": "arun.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "Rework Form",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "arun.itdigital@homegeniegroup.com",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

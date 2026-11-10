@@ -1,0 +1,18 @@
+{
+ "creation": "2025-06-30 23:22:35.710386",
+ "doc_type": "Sales Order",
+ "docstatus": 0,
+ "doctype": "Property Setter",
+ "doctype_or_field": "DocField",
+ "field_name": "advance_paid",
+ "idx": 0,
+ "is_system_generated": 0,
+ "modified": "2025-06-28 11:08:44.800642",
+ "modified_by": "Administrator",
+ "module": "Itgenie",
+ "name": "Sales Order-advance_paid-allow_on_submit",
+ "owner": "Administrator",
+ "property": "allow_on_submit",
+ "property_type": "Check",
+ "value": "1"
+}

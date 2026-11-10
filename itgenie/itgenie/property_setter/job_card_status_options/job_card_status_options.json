@@ -1,0 +1,18 @@
+{
+ "creation": "2025-08-30 13:09:54.095459",
+ "doc_type": "Job Card",
+ "docstatus": 0,
+ "doctype": "Property Setter",
+ "doctype_or_field": "DocField",
+ "field_name": "status",
+ "idx": 0,
+ "is_system_generated": 0,
+ "modified": "2025-08-30 14:26:44.307336",
+ "modified_by": "rajesh.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "Job Card-status-options",
+ "owner": "rajesh.itdigital@homegeniegroup.com",
+ "property": "options",
+ "property_type": "Select",
+ "value": "Open\nWork In Progress\nMaterial Transferred\nOn Hold\nSubmitted\nCancelled\nCompleted\nPartially Transferred"
+}

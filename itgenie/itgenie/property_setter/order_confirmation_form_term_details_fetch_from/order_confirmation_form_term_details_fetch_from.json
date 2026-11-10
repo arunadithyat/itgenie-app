@@ -1,0 +1,18 @@
+{
+ "creation": "2025-06-30 23:22:35.520067",
+ "doc_type": "Order Confirmation Form",
+ "docstatus": 0,
+ "doctype": "Property Setter",
+ "doctype_or_field": "DocField",
+ "field_name": "term_details",
+ "idx": 0,
+ "is_system_generated": 0,
+ "modified": "2025-06-28 11:08:44.879211",
+ "modified_by": "Administrator",
+ "module": "Itgenie",
+ "name": "Order Confirmation Form-term_details-fetch_from",
+ "owner": "Administrator",
+ "property": "fetch_from",
+ "property_type": "Small Text",
+ "value": ""
+}

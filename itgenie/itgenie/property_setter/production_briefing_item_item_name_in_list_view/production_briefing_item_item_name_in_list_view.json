@@ -1,0 +1,18 @@
+{
+ "creation": "2025-08-07 16:42:58.197290",
+ "doc_type": "Production Briefing Item",
+ "docstatus": 0,
+ "doctype": "Property Setter",
+ "doctype_or_field": "DocField",
+ "field_name": "item_name",
+ "idx": 0,
+ "is_system_generated": 1,
+ "modified": "2025-08-07 16:48:08.773657",
+ "modified_by": "rajesh.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "Production Briefing Item-item_name-in_list_view",
+ "owner": "rajesh.itdigital@homegeniegroup.com",
+ "property": "in_list_view",
+ "property_type": "Check",
+ "value": "1"
+}

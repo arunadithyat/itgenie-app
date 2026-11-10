@@ -1,0 +1,18 @@
+{
+ "creation": "2025-06-30 23:22:35.699517",
+ "doc_type": "Sales Order",
+ "docstatus": 0,
+ "doctype": "Property Setter",
+ "doctype_or_field": "DocField",
+ "field_name": "advance_paid",
+ "idx": 0,
+ "is_system_generated": 1,
+ "modified": "2026-01-24 16:40:41.398344",
+ "modified_by": "arun.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "Sales Order-advance_paid-read_only",
+ "owner": "Administrator",
+ "property": "read_only",
+ "property_type": "Check",
+ "value": "1"
+}

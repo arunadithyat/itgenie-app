@@ -1,0 +1,18 @@
+{
+ "creation": "2025-06-30 23:22:35.650597",
+ "doc_type": "Delivery Plan",
+ "docstatus": 0,
+ "doctype": "Property Setter",
+ "doctype_or_field": "DocField",
+ "field_name": "reason_for_pending",
+ "idx": 0,
+ "is_system_generated": 0,
+ "modified": "2025-04-26 17:50:00.933995",
+ "modified_by": "Administrator",
+ "module": "Itgenie",
+ "name": "Delivery Plan-reason_for_pending-hidden",
+ "owner": "Administrator",
+ "property": "hidden",
+ "property_type": "Check",
+ "value": "1"
+}

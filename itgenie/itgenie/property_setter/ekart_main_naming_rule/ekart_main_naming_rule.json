@@ -1,0 +1,17 @@
+{
+ "creation": "2025-09-26 12:58:40.170896",
+ "doc_type": "eKart",
+ "docstatus": 0,
+ "doctype": "Property Setter",
+ "doctype_or_field": "DocType",
+ "idx": 0,
+ "is_system_generated": 0,
+ "modified": "2025-09-27 14:27:08.173305",
+ "modified_by": "rajesh.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "eKart-main-naming_rule",
+ "owner": "rajesh.itdigital@homegeniegroup.com",
+ "property": "naming_rule",
+ "property_type": "Data",
+ "value": "Expression (old style)"
+}

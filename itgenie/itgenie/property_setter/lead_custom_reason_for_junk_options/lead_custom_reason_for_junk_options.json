@@ -1,0 +1,18 @@
+{
+ "creation": "2025-04-18 18:54:23.656442",
+ "doc_type": "Lead",
+ "docstatus": 0,
+ "doctype": "Property Setter",
+ "doctype_or_field": "DocField",
+ "field_name": "custom_reason_for_junk",
+ "idx": 0,
+ "is_system_generated": 0,
+ "modified": "2025-07-24 10:23:43.009178",
+ "modified_by": "rajesh.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "Lead-custom_reason_for_junk-options",
+ "owner": "Administrator",
+ "property": "options",
+ "property_type": "Select",
+ "value": "\nJust Enquiry\nNo Space\nNon Serviceable Area\nPrefer Other brand\nJunk"
+}

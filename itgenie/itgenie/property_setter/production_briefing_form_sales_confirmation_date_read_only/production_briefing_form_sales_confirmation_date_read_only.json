@@ -1,0 +1,18 @@
+{
+ "creation": "2025-09-15 12:34:51.472287",
+ "doc_type": "Production Briefing Form",
+ "docstatus": 0,
+ "doctype": "Property Setter",
+ "doctype_or_field": "DocField",
+ "field_name": "sales_confirmation_date",
+ "idx": 0,
+ "is_system_generated": 0,
+ "modified": "2025-09-15 19:02:30.203565",
+ "modified_by": "rajesh.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "Production Briefing Form-sales_confirmation_date-read_only",
+ "owner": "rajesh.itdigital@homegeniegroup.com",
+ "property": "read_only",
+ "property_type": "Check",
+ "value": "0"
+}

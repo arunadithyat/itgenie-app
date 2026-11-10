@@ -1,0 +1,163 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2026-05-19 15:41:08.874467",
+ "custom": 1,
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "basic_details_section",
+  "naming_series",
+  "creative_title",
+  "creative_type",
+  "platform",
+  "description",
+  "column_break_inth",
+  "deadline",
+  "status",
+  "priority",
+  "responsible_person",
+  "company",
+  "completed_by",
+  "completed_on",
+  "section_break_nump",
+  "attachments",
+  "section_break_itqv",
+  "campign_name",
+  "ad_id"
+ ],
+ "fields": [
+  {
+   "fieldname": "basic_details_section",
+   "fieldtype": "Section Break",
+   "label": "Basic Details"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Naming Series",
+   "no_copy": 1,
+   "options": "DD-CR-.###\nRT-CR-.###\nBIO-CR-.###\nTIMB-CR-.###"
+  },
+  {
+   "fieldname": "creative_title",
+   "fieldtype": "Data",
+   "label": "Creative Title"
+  },
+  {
+   "fieldname": "creative_type",
+   "fieldtype": "Select",
+   "label": "Creative Type",
+   "options": "\nImage\nVideo\nBanner\nAudio"
+  },
+  {
+   "fieldname": "platform",
+   "fieldtype": "Select",
+   "label": "Platform",
+   "options": "\nFacebook\nInstagram\nYoutube\nLinked In\nWebsite\nWhatsapp\nNotice\nBanners\nOffice Works\nOut Door"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "column_break_inth",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "deadline",
+   "fieldtype": "Datetime",
+   "label": "Deadline"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "status",
+   "options": "\nOpen\nWorking\nHold\nCompleted"
+  },
+  {
+   "fieldname": "priority",
+   "fieldtype": "Select",
+   "label": "Priority",
+   "options": "\nLow\nMedium\nHigh\nUrgent"
+  },
+  {
+   "fieldname": "responsible_person",
+   "fieldtype": "Link",
+   "label": "Responsible Person",
+   "options": "User"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "completed_by",
+   "fieldtype": "Link",
+   "label": "Completed By",
+   "options": "User"
+  },
+  {
+   "fieldname": "completed_on",
+   "fieldtype": "Datetime",
+   "label": "Completed On"
+  },
+  {
+   "fieldname": "section_break_nump",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "attachments",
+   "fieldtype": "Table",
+   "label": "Attachments",
+   "options": "Attachments"
+  },
+  {
+   "fieldname": "section_break_itqv",
+   "fieldtype": "Section Break",
+   "label": "Campign Details"
+  },
+  {
+   "fieldname": "campign_name",
+   "fieldtype": "Data",
+   "label": "Campign name"
+  },
+  {
+   "fieldname": "ad_id",
+   "fieldtype": "Data",
+   "label": "Ad Id"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-06-26 16:53:58.460191",
+ "modified_by": "rajkumar.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "Creative Request",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "rajkumar.itdigital@homegeniegroup.com",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

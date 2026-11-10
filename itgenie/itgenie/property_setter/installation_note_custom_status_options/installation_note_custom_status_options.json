@@ -1,0 +1,18 @@
+{
+ "creation": "2025-06-30 23:22:35.731934",
+ "doc_type": "Installation Note",
+ "docstatus": 0,
+ "doctype": "Property Setter",
+ "doctype_or_field": "DocField",
+ "field_name": "custom_status",
+ "idx": 0,
+ "is_system_generated": 0,
+ "modified": "2026-04-01 17:08:47.888197",
+ "modified_by": "rajesh.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "Installation Note-custom_status-options",
+ "owner": "Administrator",
+ "property": "options",
+ "property_type": "Select",
+ "value": "Draft\nPending\nScheduled\nWork in Progress\nCustomer Confirmation Pending\nCompleted\nCancelled\nRejected"
+}

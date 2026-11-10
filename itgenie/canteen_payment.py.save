@@ -1,0 +1,624 @@
+import hashlib
+import hmac
+import json
+import re
+import time
+import frappe
+import requests
+from frappe.utils import add_days, cint, getdate, now_datetime, today
+
+RAZORPAY_KEY_ID = "rzp_live_TmC6I3bdoDh749"
+RAZORPAY_KEY_SECRET = "NIJzRcuR3Qs1FQoqb9tT5Fna"
+RAZORPAY_WEBHOOK_SECRET = "W7CwrJPDg@YWj8P"
+API = "https://api.razorpay.com/v1"
+FARMGENIE_EMPLOYEE_API = "https://erp.farmgenie.store/api/method/GAE"
+FARMGENIE_TIMEOUT = 15
+MENU = {
+    "Break Fast": {"code": "Breakfast Combo", "rate": 5, "prefix": "B", "description": "Poori, Pongal and Kesari"},
+    "Lunch": {"code": "Lunch Combo", "rate": 10, "prefix": "L", "description": "Meals and Sambar"},
+    "Dinner": {"code": "Dinner Combo", "rate": 5, "prefix": "D", "description": "Chapati and Veg Kuruma"},
+    "Chicken Curry": {"code": "Chicken Curry", "rate": 50, "prefix": "C", "description": "Chicken Curry - optional lunch add-on"},
+}
+PREFIX_START = {"B": 373, "L": 754, "D": 308, "C": 1, "WE": 1, "MO": 1}
+
+# ---------------------------------------------------------------------------
+# FLOW (no Canteen entry until payment is captured)
+#   prepare  -> validates, creates a Razorpay order and stores the booking
+#               details in the order's "notes" (server-side, tamper-proof).
+#               NO Canteen document is created here.
+#   confirm / status / webhook -> fetch the order + captured payment from
+#               Razorpay; only then create the Canteen documents as Paid.
+# Older Pending documents created by the previous flow are still finalised.
+
+# ---------------------------------------------------------------------------
+
+def _config():
+    if (not RAZORPAY_KEY_ID.startswith(("rzp_test_", "rzp_live_"))
+            or RAZORPAY_KEY_SECRET.startswith("PASTE_")
+            or not RAZORPAY_KEY_SECRET):
+        frappe.throw("Configure the Razorpay Key ID and Key Secret in canteen_payment.py.")
+    return RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
+
+def _api(method, path, **kwargs):
+    key, secret = _config()
+    try:
+        response = requests.request(method, API + path, auth=(key, secret), timeout=20, **kwargs)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException:
+        frappe.log_error(frappe.get_traceback(), "Canteen Razorpay API failure")
+        frappe.throw("Unable to contact Razorpay. Please retry shortly.")
+
+def _manager():
+    return frappe.session.user == "Administrator" or "System Manager" in frappe.get_roles(frappe.session.user)
+
+def _remote_exc_type(response):
+    """Frappe error responses carry exc_type (e.g. PermissionError, DoesNotExistError)."""
+    try:
+        body = response.json()
+    except ValueError:
+        return None
+    return body.get("exc_type") if isinstance(body, dict) else None
+
+def _farmgenie_employee_is_active(employee):
+    # The Farmgenie Server Script (API method "GAE") is Allow Guest, so no secret is sent.
+    try:
+        response = requests.post(
+            FARMGENIE_EMPLOYEE_API,
+            data={"employee": employee},
+            headers={"Accept": "application/json"},
+            timeout=FARMGENIE_TIMEOUT,
+        )
+    except requests.RequestException:
+        frappe.log_error(frappe.get_traceback(), "Canteen Farmgenie verification - network error")
+        frappe.throw("Unable to reach Farmgenie for employee verification. Please retry.")
+    if response.status_code != 200:
+        exc_type = _remote_exc_type(response)
+        frappe.log_error(
+            "HTTP {0} / exc_type={1}\nEmployee: {2}\n{3}".format(
+                response.status_code, exc_type, employee, response.text[:2000]),
+            "Canteen Farmgenie verification - bad response")
+        if exc_type in ("PermissionError", "AuthenticationError") or response.status_code in (401, 403):
+            # Farmgenie script is not guest-accessible (Allow Guest off) or still checks a secret.
+            frappe.throw("Farmgenie verification is not accessible. Contact the administrator.")
+        if response.status_code == 404:
+            frappe.throw("Farmgenie verification API not found. Contact the administrator.")
+        if response.status_code >= 500:
+            frappe.throw("Farmgenie verification is temporarily unavailable. Please retry.")
+        # 417 etc. (e.g. employee not found on Farmgenie side) -> treat as not active.
+        return False
+    try:
+        body = response.json()
+    except ValueError:
+        frappe.log_error(response.text[:2000], "Canteen Farmgenie verification - non-JSON response")
+        return False
+    if not isinstance(body, dict):
+        return False
+    result = body.get("message")
+    if not isinstance(result, dict):
+        result = body
+    if result.get("status") != "success":
+        return False
+    # Preferred reply from Farmgenie: {"status": "success", "active": true/false}
+    if "active" in result:
+        return result.get("active") is True
+    # Older reply shape: list of employees
+    return any(
+        str(row.get("employee") or "").strip() == employee
+        for row in (result.get("employees") or [])
+        if isinstance(row, dict)
+    )
+
+def _employee_allowed(employee):
+    if frappe.session.user == "Guest":
+        if frappe.db.exists("Employee", {"name": employee, "status": "Active"}):
+            return employee
+        if _farmgenie_employee_is_active(employee):
+            return employee
+        frappe.throw("Employee ID not found or not active.", frappe.PermissionError)
+    own = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+    if not _manager() and own != employee:
+        frappe.throw("You can only book meals for yourself.", frappe.PermissionError)
+    if not frappe.db.exists("Employee", {"name": employee, "status": "Active"}):
+        frappe.throw("Select an active employee.")
+
+def _lock(key):
+    row = frappe.db.sql("SELECT GET_LOCK(%s, 10)", (key,))
+    if not row or row[0][0] != 1:
+        frappe.throw("Booking is busy; please retry.")
+
+def _unlock(key):
+    frappe.db.sql("SELECT RELEASE_LOCK(%s)", (key,))
+
+def _employee_lock(employee):
+    return "canteen_emp_" + hashlib.sha256(employee.encode()).hexdigest()[:24]
+
+def _next_id(prefix):
+    pattern = "^" + re.escape(prefix) + "[0-9]+$"
+    rows = frappe.db.sql(
+        "SELECT MAX(CAST(SUBSTRING(order_id, %s) AS UNSIGNED)) FROM `tabCanteen` WHERE order_id REGEXP %s",
+        (len(prefix) + 1, pattern),
+    )
+    last = int(rows[0][0] or 0)
+    return prefix + str(max(last + 1, PREFIX_START[prefix])).zfill(5)
+
+def _dates(start, end, exclude):
+    dates = []
+    day = start
+    while day <= end:
+        if not (exclude and day.weekday() == 6):
+            dates.append(str(day))
+        day = getdate(add_days(day, 1))
+    return dates
+
+def _amount_paise(items, dates, chicken_dates=None):
+    amount = 0
+    for item in items:
+        meal_dates = chicken_dates if item["meal_type"] == "Chicken Curry" and chicken_dates is not None else dates
+        amount += MENU[item["meal_type"]]["rate"] * item["quantity"] * len(meal_dates)
+    return amount * 100
+
+def _paid_lunch_dates(employee):
+    """Return dates with a confirmed, paid Lunch booking for this employee."""
+    names = frappe.get_all(
+        "Canteen",
+        filters={"employee": employee, "payment_status": "Paid", "booking_status": "Confirmed"},
+        pluck="name",
+        limit_page_length=0,
+    )
+    dates = set()
+    for name in names:
+        doc = frappe.get_doc("Canteen", name)
+        for row in doc.canteen_items or []:
+            if row.item_code != MENU["Lunch"]["code"] or not row.delivery_date:
+                continue
+            dates.add(str(getdate(row.delivery_date)))
+    return dates
+
+def _validated(employee, location, booking_date, to_date, booking_type, exclude_sunday, items):
+    employee = str(employee or "").strip()
+    location = str(location or "").strip()
+    _employee_allowed(employee)
+    if location not in ("Head Office", "Ayambakkam"):
+        frappe.throw("Invalid canteen location.")
+    booking_type = str(booking_type or "daily").lower()
+    if booking_type not in ("daily", "weekly", "monthly"):
+        frappe.throw("Invalid booking type.")
+    if isinstance(items, str):
+        try:
+            items = json.loads(items)
+        except (ValueError, TypeError):
+            frappe.throw("Invalid meal selection.")
+    if not isinstance(items, list) or not 1 <= len(items) <= 4:
+        frappe.throw("Select 1 to 4 items.")
+    selected = []
+    seen = set()
+    for item in items:
+        if not isinstance(item, dict):
+            frappe.throw("Invalid meal item.")
+        meal = str(item.get("meal_type") or "").strip()
+        if meal not in MENU or meal in seen:
+            frappe.throw("Invalid or repeated meal type.")
+        seen.add(meal)
+        try:
+            raw_qty = str(item.get("quantity", ""))
+            if not raw_qty.isdigit():
+                frappe.throw("Quantity must be a whole number.")
+            qty = int(raw_qty)
+        except (ValueError, TypeError):
+            frappe.throw("Invalid meal quantity.")
+        if not 1 <= qty <= 10:
+            frappe.throw("Quantity must be between 1 and 10.")
+        if not frappe.db.exists("Item", MENU[meal]["code"]):
+            frappe.throw("Missing Item: " + MENU[meal]["code"])
+        selected.append({"meal_type": meal, "quantity": qty})
+    selected_names = {item["meal_type"] for item in selected}
+    try:
+        start = getdate(booking_date)
+        end = getdate(to_date or booking_date)
+    except (ValueError, TypeError):
+        frappe.throw("Select valid booking dates.")
+    if booking_type == "daily" and start != end:
+        frappe.throw("Daily booking must use one date.")
+    if end < start or (end - start).days > 30:
+        frappe.throw("Date range must be 1 to 31 days.")
+    exclude = cint(exclude_sunday or 0) == 1
+    dates = _dates(start, end, exclude)
+    if not dates:
+        frappe.throw("No booking dates selected.")
+    now = now_datetime()
+    chicken_dates = []
+    if "Chicken Curry" in selected_names:
+        chicken_dates = [
+            date for date in dates
+            if getdate(date).weekday() == 2
+            and not (getdate(date) == getdate(today()) and now.hour >= 10)
+        ]
+        if not chicken_dates:
+            frappe.throw("Chicken Curry is available only on Wednesdays before the 10 AM cutoff.")
+        if "Lunch" not in selected_names:
+            paid_lunch_dates = _paid_lunch_dates(employee)
+            chicken_dates = [date for date in chicken_dates if date in paid_lunch_dates]
+            if not chicken_dates:
+                frappe.throw("Chicken Curry requires an already paid Lunch for the same employee on Wednesday.")
+    for item in selected:
+        item_dates = chicken_dates if item["meal_type"] == "Chicken Curry" else dates
+        for date in item_dates:
+            d = getdate(date)
+            meal = item["meal_type"]
+            if d < getdate(today()):
+                frappe.throw("Past dates cannot be booked.")
+            if d == getdate(today()):
+                if meal == "Break Fast":
+                    frappe.throw("Breakfast booking for today is closed.")
+                if meal in ("Lunch", "Chicken Curry") and now.hour >= 10:
+                    frappe.throw(meal + " booking for today closes at 10 AM.")
+                if meal == "Dinner" and now.hour >= 16:
+                    frappe.throw("Dinner booking for today closes at 4 PM.")
+    return {"employee": employee, "location": location, "booking_type": booking_type,
+            "start": str(start), "end": str(end), "exclude_sunday": exclude,
+            "dates": dates, "chicken_dates": chicken_dates, "items": selected,
+            "amount_paise": _amount_paise(selected, dates, chicken_dates)}
+
+def _existing(employee):
+    found = set()
+    names = frappe.get_all("Canteen", filters={"employee": employee}, pluck="name", limit_page_length=0)
+    for name in names:
+        doc = frappe.get_doc("Canteen", name)
+        if doc.booking_status == "Cancelled" or doc.payment_status == "Failed":
+            continue
+        # Unpaid online orders (left over from the old flow) do not block a booking.
+        if doc.payment_status == "Pending" and doc.get("razorpay_order_id"):
+            continue
+        for row in doc.canteen_items or []:
+            found.add((row.item_code, str(row.delivery_date)))
+    return found
+
+def _conflict(payload):
+    existing = _existing(payload["employee"])
+    for item in payload["items"]:
+        dates = (payload.get("chicken_dates", payload["dates"])
+                 if item["meal_type"] == "Chicken Curry" else payload["dates"])
+        for date in dates:
+            if (MENU[item["meal_type"]]["code"], date) in existing:
+                return "Already booked " + item["meal_type"] + " for " + date
+    return None
+
+def _ensure_available(payload):
+    message = _conflict(payload)
+    if message:
+        frappe.throw(message)
+
+def _rows(items, dates, chicken_dates=None):
+    rows = []
+    for date in dates:
+        for item in items:
+            meal = item["meal_type"]
+            if (meal == "Chicken Curry" and chicken_dates is not None
+                    and date not in chicken_dates):
+                continue
+            info = MENU[meal]
+            qty = item["quantity"]
+            rows.append({"item_code": info["code"], "item_name": info["code"],
+                         "description": info["description"], "delivery_date": date,
+                         "qty": qty, "uom": "Nos", "conversion_factor": 1,
+                         "rate": info["rate"], "amount": qty * info["rate"]})
+    return rows
+
+def _paid_docs(payload, razorpay_order_id, payment):
+    """Create the Canteen documents. Called ONLY after a captured payment is verified."""
+    groups = []
+    chicken = next((item for item in payload["items"]
+                    if item["meal_type"] == "Chicken Curry"), None)
+    regular_items = [item for item in payload["items"]
+                     if item["meal_type"] != "Chicken Curry"]
+    if payload["booking_type"] == "daily":
+        for item in regular_items:
+            meal = item["meal_type"]
+            groups.append((MENU[meal]["prefix"], meal,
+                           _rows([item], payload["dates"])))
+    else:
+        prefix = "WE" if payload["booking_type"] == "weekly" else "MO"
+        if regular_items:
+            groups.append((prefix, None, _rows(regular_items, payload["dates"])))
+    if chicken:
+        groups.append((MENU["Chicken Curry"]["prefix"], "Chicken Curry",
+                       _rows([chicken], payload["dates"], payload.get("chicken_dates"))))
+    result = []
+    for prefix, meal, rows in groups:
+        amount = sum(row["amount"] for row in rows)
+        data = {"doctype": "Canteen", "employee": payload["employee"],
+                "location": payload["location"], "order_id": _next_id(prefix),
+                "canteen_items": rows, "paid_amount": str(amount),
+                "payment_type": "Online", "payment_status": "Paid",
+                "booking_status": "Confirmed", "payment_amount": amount,
+                "razorpay_order_id": razorpay_order_id,
+                "razorpay_payment_id": payment["id"],
+                "payment_date": now_datetime(),
+                "payment_method": payment.get("method") or "Online"}
+        if meal:
+            data["meal_type"] = meal
+        doc = frappe.get_doc(data)
+        doc.flags.ignore_mandatory = True
+        doc.insert(ignore_permissions=True)
+        result.append(doc)
+    return result
+
+def _notes_from_payload(payload):
+    # Razorpay notes: max 15 keys, string values up to 256 characters each.
+    return {
+        "canteen": "1",
+        "employee": payload["employee"],
+        "location": payload["location"],
+        "booking_type": payload["booking_type"],
+        "start": payload["start"],
+        "end": payload["end"],
+        "exclude_sunday": "1" if payload["exclude_sunday"] else "0",
+        "items": json.dumps(payload["items"], separators=(",", ":")),
+        "chicken_dates": json.dumps(payload.get("chicken_dates") or [], separators=(",", ":")),
+    }
+
+def _payload_from_notes(notes):
+    try:
+        items = json.loads(notes.get("items") or "[]")
+        start = getdate(notes.get("start"))
+        end = getdate(notes.get("end"))
+        chicken_dates = json.loads(notes.get("chicken_dates") or "[]")
+    except (ValueError, TypeError):
+        frappe.throw("Invalid booking details on payment order.")
+    if not items or any(i.get("meal_type") not in MENU for i in items):
+        frappe.throw("Invalid booking details on payment order.")
+    items = [{"meal_type": i["meal_type"], "quantity": int(i["quantity"])} for i in items]
+    dates = _dates(start, end, notes.get("exclude_sunday") == "1")
+    # Older orders did not store the Wednesday portions separately; preserve
+    # their original amount and row details while they are still payable.
+    if "chicken_dates" not in notes and any(i["meal_type"] == "Chicken Curry" for i in items):
+        chicken_dates = dates
+    if not isinstance(chicken_dates, list) or any(date not in dates for date in chicken_dates):
+        frappe.throw("Invalid Chicken Curry dates on payment order.")
+    has_chicken = any(i["meal_type"] == "Chicken Curry" for i in items)
+    if has_chicken and not chicken_dates:
+        frappe.throw("Invalid Chicken Curry dates on payment order.")
+    if (has_chicken and "chicken_dates" in notes
+            and any(getdate(date).weekday() != 2 for date in chicken_dates)):
+        frappe.throw("Invalid Chicken Curry dates on payment order.")
+    if not has_chicken and chicken_dates:
+        frappe.throw("Invalid Chicken Curry dates on payment order.")
+    return {"employee": notes.get("employee"), "location": notes.get("location"),
+            "booking_type": notes.get("booking_type") or "daily",
+            "dates": dates, "chicken_dates": chicken_dates, "items": items,
+            "amount_paise": _amount_paise(items, dates, chicken_dates)}
+
+@frappe.whitelist(methods=["POST"], allow_guest=True)
+def employee_history(employee=None):
+    """Return this verified employee's bookings in the staff history row format."""
+    employee = str(employee or "").strip()
+    _employee_allowed(employee)
+    employee_name = frappe.db.get_value("Employee", employee, "employee_name") or employee
+    meal_by_code = {details["code"]: meal for meal, details in MENU.items()}
+    names = frappe.get_all(
+        "Canteen",
+        filters={"employee": employee},
+        pluck="name",
+        limit_page_length=0,
+    )
+    records = []
+    for name in names:
+        doc = frappe.get_doc("Canteen", name)
+        doc_employee_name = doc.get("employee_name") or employee_name
+        items = doc.canteen_items or []
+        if not items:
+            records.append({
+                "order_id": doc.get("order_id") or doc.name,
+                "employee": employee,
+                "employee_name": doc_employee_name,
+                "meal_type": doc.get("meal_type") or "",
+                "delivery_date": str(doc.get("delivery_date") or ""),
+            })
+            continue
+        for item in items:
+            item_code = item.get("item_code") or item.get("item_name") or ""
+            records.append({
+                "order_id": doc.get("order_id") or doc.name,
+                "employee": employee,
+                "employee_name": doc_employee_name,
+                "meal_type": item.get("meal_type") or meal_by_code.get(item_code) or doc.get("meal_type") or "",
+                "delivery_date": str(item.get("delivery_date") or ""),
+            })
+    return {"success": True, "data": records}
+
+@frappe.whitelist(methods=["POST"], allow_guest=True)
+def prepare(employee=None, location=None, booking_date=None, to_date=None,
+            booking_type="daily", exclude_sunday=0, items=None):
+    payload = _validated(employee, location, booking_date, to_date,
+                         booking_type, exclude_sunday, items)
+    lock = _employee_lock(payload["employee"])
+    _lock(lock)
+    try:
+        _ensure_available(payload)
+        # Create the Razorpay order. No money is charged by creating an order.
+        # Booking details travel with the order (notes); nothing is saved in Canteen yet.
+        receipt = "ct_" + hashlib.sha256(
+            (payload["employee"] + str(time.time_ns())).encode()
+        ).hexdigest()[:30]
+        order = _api("POST", "/orders", json={"amount": payload["amount_paise"],
+                                             "currency": "INR", "receipt": receipt,
+                                             "notes": _notes_from_payload(payload)})
+        if (not order.get("id") or order.get("currency") != "INR"
+                or int(order.get("amount") or 0) != payload["amount_paise"]):
+            frappe.throw("Razorpay returned an unexpected order.")
+        return {"success": True, "order_id": order["id"], "key_id": RAZORPAY_KEY_ID,
+                "amount": payload["amount_paise"], "currency": "INR", "bookings": []}
+    finally:
+        _unlock(lock)
+
+def _get_docs(order_id):
+    names = frappe.get_all("Canteen", filters={"razorpay_order_id": order_id},
+                           pluck="name", limit_page_length=0)
+    return [frappe.get_doc("Canteen", n) for n in names]
+
+def _authorize(docs):
+    if not docs:
+        frappe.throw("Payment order not found.")
+    for doc in docs:
+        _employee_allowed(doc.employee)
+
+def _captured(order_id, payment_id=None):
+    result = _api("GET", "/orders/" + order_id + "/payments")
+    for payment in result.get("items") or []:
+        if (payment.get("status") == "captured"
+                and payment.get("order_id") == order_id
+                and payment.get("currency") == "INR"
+                and (not payment_id or payment.get("id") == payment_id)):
+            return payment
+    return None
+
+def _payment_used_elsewhere(payment_id, order_id):
+    return frappe.db.exists("Canteen", {"razorpay_payment_id": payment_id,
+                                        "razorpay_order_id": ["!=", order_id]})
+
+def _finalize_legacy(docs, order_id, payment_id, webhook):
+    """Orders created by the previous flow (Pending documents already exist)."""
+    if not webhook:
+        _authorize(docs)
+    if all(d.payment_status == "Paid" and d.booking_status == "Confirmed" for d in docs):
+        return {"success": True, "booked": True, "bookings": [d.order_id for d in docs]}
+    if any(d.payment_status == "Paid" or d.booking_status == "Confirmed" for d in docs):
+        frappe.throw("Inconsistent payment state; contact administrator.")
+    payment = _captured(order_id, payment_id)
+    if not payment:
+        return {"success": False, "booked": False,
+                "message": "Payment has not been captured. Check again shortly."}
+    total_paise = int(round(sum(float(d.payment_amount or 0) for d in docs) * 100))
+    if int(payment.get("amount") or 0) != total_paise:
+        frappe.log_error("Order: " + order_id, "Canteen captured amount mismatch")
+        return {"success": False, "booked": False, "payment_captured": True,
+                "message": "Payment captured but amount differs. Contact support; do not pay again."}
+    if _payment_used_elsewhere(payment["id"], order_id):
+        frappe.throw("Payment already assigned to a different order.")
+    for doc in docs:
+        if doc.booking_status == "Cancelled" or doc.payment_status == "Failed":
+            return {"success": False, "booked": False, "payment_captured": True,
+                    "message": "Payment captured for a closed booking. Contact support; do not pay again."}
+    for doc in docs:
+        doc.payment_status = "Paid"
+        doc.booking_status = "Confirmed"
+        doc.razorpay_payment_id = payment["id"]
+        doc.payment_date = now_datetime()
+        doc.payment_method = payment.get("method") or "Online"
+        doc.save(ignore_permissions=True)
+    frappe.db.commit()
+    return {"success": True, "booked": True, "payment_id": payment["id"],
+            "bookings": [d.order_id for d in docs]}
+
+def _finalize_new(order_id, payment_id, webhook):
+    """Create Canteen documents only after Razorpay confirms the payment is captured."""
+    order = _api("GET", "/orders/" + order_id)
+    notes = order.get("notes") or {}
+    if isinstance(notes, list) or notes.get("canteen") != "1":
+        frappe.throw("Payment order not found.")
+    payload = _payload_from_notes(notes)
+    if not webhook:
+        _employee_allowed(payload["employee"])
+    payment = _captured(order_id, payment_id)
+    if not payment:
+        # Not paid (closed, failed or still in progress): nothing is created.
+        return {"success": False, "booked": False,
+                "message": "Payment has not been captured. Check again shortly."}
+    order_amount = int(order.get("amount") or 0)
+    if (int(payment.get("amount") or 0) != order_amount
+            or payload["amount_paise"] != order_amount):
+        frappe.log_error("Order: " + order_id, "Canteen captured amount mismatch")
+        return {"success": False, "booked": False, "payment_captured": True,
+                "message": "Payment captured but amount differs. Contact support; do not pay again."}
+    if _payment_used_elsewhere(payment["id"], order_id):
+        frappe.throw("Payment already assigned to a different order.")
+    emp_lock = _employee_lock(payload["employee"])
+    _lock(emp_lock)
+    try:
+        # Do not reject a genuinely captured payment because a cutoff passed while
+        # the customer was in Checkout (cutoffs were validated at prepare).
+        # A duplicate booking (e.g. paid twice in two tabs) needs a manual refund.
+        if (any(i["meal_type"] == "Chicken Curry" for i in payload["items"])
+                and not any(i["meal_type"] == "Lunch" for i in payload["items"])):
+            paid_lunch_dates = _paid_lunch_dates(payload["employee"])
+            if not set(payload.get("chicken_dates") or []).issubset(paid_lunch_dates):
+                message = (
+                    "Chicken Curry payment was captured, but the paid Lunch booking "
+                    "for the same date could not be verified. Contact support; do not pay again."
+                )
+                frappe.log_error("Order: " + order_id + " / Payment: " + payment["id"],
+                                 "Canteen Chicken Curry base Lunch missing")
+                return {"success": False, "booked": False, "payment_captured": True,
+                        "message": message}
+        conflict = _conflict(payload)
+        if conflict:
+            frappe.log_error("Order: " + order_id + " / Payment: " + payment["id"] + " / " + conflict,
+                             "Canteen captured payment for duplicate booking")
+            return {"success": False, "booked": False, "payment_captured": True,
+                    "message": conflict + ". Payment received; contact support for a refund. Do not pay again."}
+        _lock("canteen_global_order_seq")
+        try:
+            docs = _paid_docs(payload, order_id, payment)
+        finally:
+            _unlock("canteen_global_order_seq")
+        frappe.db.commit()
+    finally:
+        _unlock(emp_lock)
+    return {"success": True, "booked": True, "payment_id": payment["id"],
+            "bookings": [d.order_id for d in docs]}
+
+def _finalize(order_id, payment_id=None, webhook=False):
+    if not order_id or not re.fullmatch(r"order_[A-Za-z0-9]+", str(order_id)):
+        frappe.throw("Invalid Razorpay order ID.")
+    lock = "canteen_pay_" + hashlib.sha256(order_id.encode()).hexdigest()[:24]
+    _lock(lock)
+    try:
+        docs = _get_docs(order_id)
+        if docs:
+            # Already created (by confirm/webhook), or an order from the old flow.
+            return _finalize_legacy(docs, order_id, payment_id, webhook)
+        return _finalize_new(order_id, payment_id, webhook)
+    finally:
+        _unlock(lock)
+
+@frappe.whitelist(methods=["POST"], allow_guest=True)
+def confirm(order_id=None, payment_id=None, razorpay_signature=None):
+    # Never trust browser-reported success: authoritative captured payment lookup.
+    # Signature is optional here because server independently fetches captured payment.
+    return _finalize(order_id, payment_id)
+
+@frappe.whitelist(methods=["POST"], allow_guest=True)
+def status(order_id=None):
+    order_id = str(order_id or "")
+    docs = _get_docs(order_id)
+    if docs and all(d.payment_status == "Paid" and d.booking_status == "Confirmed" for d in docs):
+        _authorize(docs)
+        return {"success": True, "booked": True,
+                "bookings": [{"name": d.name, "order_id": d.order_id,
+                              "payment_status": d.payment_status,
+                              "booking_status": d.booking_status} for d in docs]}
+    # Not booked yet: check Razorpay. Creates the booking only if the payment was captured
+    # (covers a customer who paid but closed the page before confirm ran).
+    return _finalize(order_id)
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+def webhook():
+    if not RAZORPAY_WEBHOOK_SECRET or RAZORPAY_WEBHOOK_SECRET.startswith("PASTE_"):
+        frappe.throw("Webhook secret is not configured.")
+    raw = frappe.request.get_data()
+    received = frappe.request.headers.get("X-Razorpay-Signature", "")
+    expected = hmac.new(RAZORPAY_WEBHOOK_SECRET.encode(), raw, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(received, expected):
+        frappe.throw("Invalid webhook signature.", frappe.PermissionError)
+    event = json.loads(raw)
+    if event.get("event") != "payment.captured":
+        return {"ok": True, "ignored": True}
+    payment = ((event.get("payload") or {}).get("payment") or {}).get("entity") or {}
+    order_id = payment.get("order_id")
+    if not order_id:
+        return {"ok": True, "ignored": True}
+    result = _finalize(order_id, payment.get("id"), webhook=True)
+    if not result.get("booked") and not result.get("payment_captured"):
+        frappe.throw("Payment capture not yet verifiable; retry webhook.")
+    return {"ok": True, "booked": bool(result.get("booked"))}

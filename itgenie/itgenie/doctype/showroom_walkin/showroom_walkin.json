@@ -1,0 +1,194 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2026-05-22 10:52:35.426958",
+ "custom": 1,
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "is_existing",
+  "walkin_date",
+  "customer",
+  "customer_category",
+  "customer_type",
+  "company_name",
+  "mobile",
+  "alternate_mobile",
+  "product_enquired",
+  "reason_for_visit",
+  "citytown",
+  "area",
+  "sales_person",
+  "source",
+  "notes",
+  "customer_reference",
+  "start_time",
+  "end_time"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Naming Series"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_existing",
+   "fieldtype": "Check",
+   "label": "Is Existing",
+   "read_only": 1
+  },
+  {
+   "fieldname": "walkin_date",
+   "fieldtype": "Date",
+   "label": "Walkin Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Customer"
+  },
+  {
+   "fieldname": "customer_category",
+   "fieldtype": "Select",
+   "label": "Customer Category",
+   "options": "B2C\nB2B\nB2Ch"
+  },
+  {
+   "depends_on": "eval:doc.customer_category!='B2C'",
+   "fieldname": "customer_type",
+   "fieldtype": "Select",
+   "label": "Customer Type",
+   "mandatory_depends_on": "eval:doc.customer_category!='B2C'",
+   "options": "\nAgency\nArchitect\nBuilders\nCarpenter\nCivil contractor\nCivil Maistry\nConsultants\nConsumer\nDevelopers\nEngineer\nGovernment Projects\nHardwares\nHome Owner\nHospitals\nHospitality\nMEP Consultant\nOthers\nPlumber\nReal Estate\nSchool/College\nTile laying mason\nHealthcare\nIndustries\nInterior Designer\nHostel\nConventional Hall\nMall\nFlats/Apartments/Complex"
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "label": "Company Name",
+   "read_only_depends_on": "eval:doc.customer_category!='B2B'"
+  },
+  {
+   "fieldname": "mobile",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Mobile"
+  },
+  {
+   "fieldname": "alternate_mobile",
+   "fieldtype": "Data",
+   "label": "Alternate Mobile"
+  },
+  {
+   "fieldname": "product_enquired",
+   "fieldtype": "Select",
+   "label": "Product Enquired",
+   "options": "\nD'sign Doors\nTimbe\nBioman\nRocotile"
+  },
+  {
+   "fieldname": "reason_for_visit",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Reason for Visit",
+   "options": "\nProduct Enquiry\nDelivery Enquiry\nPurchase Planning\nService Support\nFollow-up Visit"
+  },
+  {
+   "fieldname": "citytown",
+   "fieldtype": "Link",
+   "label": "City/Town",
+   "options": "District or City",
+   "reqd": 1
+  },
+  {
+   "fieldname": "area",
+   "fieldtype": "Data",
+   "label": "Area",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sales_person",
+   "fieldtype": "Link",
+   "label": "Sales Person",
+   "options": "Sales Person"
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Link",
+   "label": "Source",
+   "options": "Lead Source"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "customer_reference",
+   "fieldtype": "Table",
+   "label": "Customer Reference",
+   "options": "Event Participants"
+  },
+  {
+   "fieldname": "start_time",
+   "fieldtype": "Datetime",
+   "label": "Start Time",
+   "read_only": 1
+  },
+  {
+   "fieldname": "end_time",
+   "fieldtype": "Datetime",
+   "label": "End Time",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "link_doctype": "Lead",
+   "link_fieldname": "custom_sv"
+  }
+ ],
+ "modified": "2026-08-26 13:10:02.770459",
+ "modified_by": "rajesh.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "Showroom Walkin",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "arun.itdigital@homegeniegroup.com",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Designers",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

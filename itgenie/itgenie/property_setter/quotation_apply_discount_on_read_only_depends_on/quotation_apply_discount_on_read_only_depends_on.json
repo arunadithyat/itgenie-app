@@ -1,0 +1,17 @@
+{
+ "creation": "2025-11-25 10:11:55.970859",
+ "doc_type": "Quotation",
+ "docstatus": 0,
+ "doctype": "Property Setter",
+ "doctype_or_field": "DocField",
+ "field_name": "apply_discount_on",
+ "idx": 0,
+ "is_system_generated": 0,
+ "modified": "2025-11-29 10:11:16.079572",
+ "modified_by": "rajesh.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "Quotation-apply_discount_on-read_only_depends_on",
+ "owner": "rajesh.itdigital@homegeniegroup.com",
+ "property": "read_only_depends_on",
+ "property_type": "Code"
+}

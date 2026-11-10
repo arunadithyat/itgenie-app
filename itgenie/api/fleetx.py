@@ -3,8 +3,8 @@ import requests
 from frappe import _
 
 @frappe.whitelist(allow_guest=True)
-def get_fleetx_live_analytics():
-    token = "e42a1892-c21b-4fe4-a674-d7984d567c0b"  # your Fleetx token
+#def get_five_analytics():
+    token ="18494e-019d-4d25-ba37-53081ef514ff"  # your Fleetx token
     url = "https://api.fleetx.io/api/v1/analytics/live"
     headers = {
         "Authorization": f"bearer {token}"
@@ -31,8 +31,8 @@ def get_fleetx_live_analytics():
         }
 
 @frappe.whitelist(allow_guest=True)
-def get_vehicle_details(vehicle_number):
-    token = "e42a1892-c21b-4fe4-a674-d7984d567c0b"
+#def gehicle_details(vehicle_number):
+    token = "7491e58fc5-4ab4-b555-f9cdb3fff802"
     url = "https://api.fleetx.io/api/v1/analytics/live"
     headers = {
         "Authorization": f"bearer {token}"
@@ -154,7 +154,7 @@ import requests
 def create_fleetx_job(delivery_trip):
     doc = frappe.get_doc("Delivery Trip", delivery_trip)
     url = "https://api.fleetx.io/api/v1/jobs"  # Assuming this is your correct endpoint
-    token = "e42a1892-c21b-4fe4-a674-d7984d567c0b"
+    token = "7497b-8fc5-4ab4-b555-f9cdb3fff802"
 
     headers = {
         "Authorization": f"Bearer {token}",

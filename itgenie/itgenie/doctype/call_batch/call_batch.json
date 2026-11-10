@@ -1,0 +1,195 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-09-29 10:04:04.947400",
+ "custom": 1,
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "lead_details_section",
+  "title",
+  "owner_user",
+  "lead_id",
+  "column_break_gmxp",
+  "total_leads",
+  "next_index",
+  "paused_until",
+  "total_call_seconds",
+  "last_call_seconds",
+  "avg_call_seconds",
+  "connected_ids",
+  "call_status_section",
+  "completed",
+  "connected",
+  "pause_every_leads",
+  "pause_minutes",
+  "paused_count",
+  "column_break_rewd",
+  "failed",
+  "status",
+  "message",
+  "start_time",
+  "end_time",
+  "attachements_section",
+  "attachement"
+ ],
+ "fields": [
+  {
+   "fieldname": "lead_details_section",
+   "fieldtype": "Section Break",
+   "label": "Lead Details"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "owner_user",
+   "fieldtype": "Data",
+   "label": "Owner User"
+  },
+  {
+   "fieldname": "lead_id",
+   "fieldtype": "Long Text",
+   "label": "Lead Id"
+  },
+  {
+   "fieldname": "column_break_gmxp",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_leads",
+   "fieldtype": "Data",
+   "label": "Total Leads"
+  },
+  {
+   "fieldname": "next_index",
+   "fieldtype": "Data",
+   "label": "Next Index"
+  },
+  {
+   "fieldname": "paused_until",
+   "fieldtype": "Datetime",
+   "label": "Paused Until"
+  },
+  {
+   "fieldname": "total_call_seconds",
+   "fieldtype": "Int",
+   "label": "Taotal Call Seconds"
+  },
+  {
+   "fieldname": "last_call_seconds",
+   "fieldtype": "Int",
+   "label": "Last call seconds"
+  },
+  {
+   "fieldname": "avg_call_seconds",
+   "fieldtype": "Int",
+   "label": "Avg Call Seconds"
+  },
+  {
+   "fieldname": "connected_ids",
+   "fieldtype": "Long Text",
+   "label": "Connected Ids"
+  },
+  {
+   "fieldname": "call_status_section",
+   "fieldtype": "Section Break",
+   "label": "Call Status"
+  },
+  {
+   "fieldname": "completed",
+   "fieldtype": "Data",
+   "label": "Completed"
+  },
+  {
+   "fieldname": "connected",
+   "fieldtype": "Data",
+   "label": "Connected"
+  },
+  {
+   "fieldname": "pause_every_leads",
+   "fieldtype": "Data",
+   "label": "Pause Every Leads"
+  },
+  {
+   "fieldname": "pause_minutes",
+   "fieldtype": "Data",
+   "label": "Pause Minutes"
+  },
+  {
+   "fieldname": "paused_count",
+   "fieldtype": "Int",
+   "label": "Paused Count"
+  },
+  {
+   "fieldname": "column_break_rewd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "failed",
+   "fieldtype": "Data",
+   "label": "Failed"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Queued\nRunning\nPaused\nDone"
+  },
+  {
+   "fieldname": "message",
+   "fieldtype": "Data",
+   "label": "Message"
+  },
+  {
+   "fieldname": "start_time",
+   "fieldtype": "Datetime",
+   "label": "Batch Start Time"
+  },
+  {
+   "fieldname": "end_time",
+   "fieldtype": "Datetime",
+   "label": "Batch End Time"
+  },
+  {
+   "fieldname": "attachements_section",
+   "fieldtype": "Section Break",
+   "label": "Attachements"
+  },
+  {
+   "fieldname": "attachement",
+   "fieldtype": "Table",
+   "label": "Attachement",
+   "options": "Attachments"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-04-22 16:31:13.528361",
+ "modified_by": "rajesh.itdigital@homegeniegroup.com",
+ "module": "Itgenie",
+ "name": "Call Batch",
+ "owner": "rajkumar.itdigital@homegeniegroup.com",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
